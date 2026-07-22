@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AI Meme Generator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
+</head>
+<body>
+  <div class="page">
+    <header class="app-header">
+      <div class="brand">
+        <div class="brand-logo">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 21 1.9-5.7a8.5 8.5 0 1 1 3.8 3.8z"/></svg>
+        </div>
+        <h1>MemeForge AI</h1>
+      </div>
+    </header>
+
+    <div class="dashboard">
+      <section class="panel-left">
+        <div class="card hero-bento">
+          <h2>Find the perfect meme template with AI.</h2>
+          <p>Describe your situation and our semantic engine will match it instantly.</p>
+          
+          <form method="post" action="{{ url_for('generate') }}" class="prompt-form" onsubmit="document.getElementById('submitBtn').innerHTML = 'Analyzing... <span class=\'loader\'></span>'; document.getElementById('submitBtn').classList.add('loading');">
+            <textarea id="query" name="query" placeholder="e.g. when the code compiles on the first try..." required>{{ query }}</textarea>
+            <button type="submit" id="submitBtn">Generate Meme</button>
+          </form>
+
+          {% if error %}
+            <div class="alert error">{{ error }}</div>
+          {% endif %}
+        </div>
+        
+        <div class="card tips-bento">
+          <div class="card-header">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+            <h3>Pro Tips</h3>
+          </div>
+          <ul>
+            <li>Use descriptive emotions.</li>
+            <li>Reference pop culture.</li>
+            <li>Keep it punchy.</li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="panel-right">
+        {% if result %}
+        <div class="bento-grid">
+          
+          <div class="card result-main bento-item stagger-1">
+            <div class="card-header">
+              <h3>Primary Match</h3>
+              <span class="badge">{{ result.combined_score | round(2) }} Score</span>
+            </div>
+            <div class="meme-display">
+              <img id="mainMemeImage" src="{{ result.image_url }}" alt="Generated meme" />
+            </div>
+            <div class="meme-info">
+              <div>
+                <p class="label">Template</p>
+                <h4 id="mainMemeTitle">{{ result.image_name }}</h4>
+              </div>
+              <a id="mainMemeDownload" href="{{ result.image_url }}" download="{{ result.image_name }}" class="btn-download">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Download
+              </a>
+            </div>
+          </div>
+
+          <div class="bento-subgrid">
+            <div class="card metric-card bento-item stagger-2">
+              <span class="metric-label">Semantic</span>
+              <strong class="metric-value">{{ result.semantic_score | round(3) }}</strong>
+            </div>
+            <div class="card metric-card bento-item stagger-3">
+              <span class="metric-label">TF-IDF</span>
+              <strong class="metric-value">{{ result.tfidf_score | round(3) }}</strong>
+            </div>
+            <div class="card metric-card bento-item stagger-4">
+              <span class="metric-label">Sentiment</span>
+              <strong class="metric-value">{{ result.sentiment_score | round(3) }}</strong>
+            </div>
+          </div>
+
+          <div class="card alternatives-card bento-item stagger-5">
+            <div class="card-header">
+              <h3>Alternative Matches</h3>
+            </div>
+            <div class="alt-grid">
+              {% for item in result.top_results %}
+              <div class="alt-item" onclick="swapMeme('{{ item.image_url }}', '{{ item.image_name }}')" style="cursor: pointer;">
+                <img src="{{ item.image_url }}" alt="{{ item.image_name }}" />
+                <div class="alt-info">
+                  <span class="alt-name">{{ item.image_name }}</span>
+                  <span class="alt-score">{{ item.score | round(2) }}</span>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+          
+        </div>
+        {% else %}
+        <div class="empty-state">
+          <div class="empty-icon">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><path d="m10 13-2 2 2 2"/><path d="m14 17 2-2-2-2"/></svg>
+          </div>
+          <h3>Awaiting Input</h3>
+          <p>Your generated meme and analysis will appear here.</p>
+        </div>
+        {% endif %}
+      </section>
+    </div>
+  </div>
+
+  <script>
+    function swapMeme(url, name) {
+      document.getElementById('mainMemeImage').src = url;
+      document.getElementById('mainMemeTitle').textContent = name;
+      
+      const downloadBtn = document.getElementById('mainMemeDownload');
+      downloadBtn.href = url;
+      downloadBtn.download = name;
+      
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  </script>
+</body>
+</html>
