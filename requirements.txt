@@ -5,6 +5,7 @@ pandas>=1.1.0
 scikit-learn>=0.24.0
 nltk>=3.6.0
 spacy>=3.0.0
+en_core_web_md @ https://github.com/explosion/spacy-models/releases/download/en_core_web_md-3.7.0/en_core_web_md-3.7.0-py3-none-any.whl
 textblob>=0.15.3
 Pillow>=8.0.0
 matplotlib>=3.3.0
