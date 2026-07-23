@@ -88,11 +88,16 @@ def extract_lda_topics(df, count_vectorizer, num_topics=10, status_callback=None
 
 def load_and_prepare_dataset(csv_path, status_callback=None):
     """Load and prepare the dataset with all necessary features."""
+    import os
     if status_callback:
         status_callback("Loading dataset...")
     
     # Load the dataset
     df = load_dataset(csv_path)
+    
+    # Cap dataset size on Render to fit within the 512MB memory limit
+    if os.environ.get('RENDER'):
+        df = df.head(1500)
     
     if status_callback:
         status_callback(f"Dataset loaded with {len(df)} rows.")
