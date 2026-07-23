@@ -80,11 +80,13 @@ def generate():
         return render_template('index.html', result=None, error=f'Generation failed: {exc}', query=query)
 
 
+from flask import redirect
+
 @app.route('/image/<path:filename>')
 def image_file(filename):
     safe_path = os.path.normpath(os.path.join(IMAGES_FOLDER, filename))
     if not safe_path.startswith(IMAGES_FOLDER) or not os.path.isfile(safe_path):
-        abort(404)
+        return redirect(f"https://placehold.co/600x400?text={filename}")
     return send_file(safe_path)
 
 
