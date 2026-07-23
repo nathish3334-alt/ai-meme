@@ -90,6 +90,8 @@ def image_file(filename):
     return send_file(safe_path)
 
 
+# Preload models so the server is ready when booting
+load_models()
+
 if __name__ == '__main__':
-    load_models()
     app.run(host='0.0.0.0', port=5000, debug=True)

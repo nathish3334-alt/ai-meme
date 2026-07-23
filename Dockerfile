@@ -20,4 +20,4 @@ EXPOSE 10000
 ENV PORT=10000
 ENV PYTHONUNBUFFERED=1
 
-CMD ["gunicorn", "--bind", "0.0.0.0:10000", "web_app:app"]
+CMD ["gunicorn", "--timeout", "120", "--bind", "0.0.0.0:10000", "web_app:app"]
