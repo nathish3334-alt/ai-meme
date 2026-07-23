@@ -1,11 +1,14 @@
 import os, numpy as np, pickle
-import spacy
+try:
+    import spacy
+except ImportError:
+    spacy = None
 from textblob import TextBlob
 from sklearn.metrics.pairwise import cosine_similarity
 from core.preprocessor import enhanced_preprocess_text
 
 nlp = None
-if not os.environ.get('VERCEL'):
+if spacy is not None and not os.environ.get('VERCEL'):
     try:
         nlp = spacy.load('en_core_web_md')
     except:

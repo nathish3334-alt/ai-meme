@@ -1,5 +1,10 @@
 """Dataset loading and preparation functions"""
-import pandas as pd, numpy as np, spacy, sys
+import pandas as pd, numpy as np
+try:
+    import spacy
+except ImportError:
+    spacy = None
+import sys
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
 from sklearn.decomposition import LatentDirichletAllocation
 from textblob import TextBlob
@@ -7,7 +12,7 @@ from core.preprocessor import enhanced_preprocess_text
 
 import os
 nlp = None
-if not os.environ.get('VERCEL'):
+if spacy is not None and not os.environ.get('VERCEL'):
     try:
         nlp = spacy.load('en_core_web_md')
     except Exception as e:
@@ -64,9 +69,11 @@ def load_and_prepare_dataset(csv_path, status_callback=None):
     
     df = load_dataset(csv_path)
     
-    # Cap dataset size on Render to fit within the 512MB memory limit
+    # Cap dataset size on Render/Vercel to fit within the 512MB memory limit
     if os.environ.get('RENDER'):
         df = df.head(1500)
+    elif os.environ.get('VERCEL'):
+        df = df.head(500)
     
     if status_callback:
         status_callback(f"Loaded {len(df)} rows.")
