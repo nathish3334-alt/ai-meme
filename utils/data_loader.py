@@ -34,20 +34,12 @@ def calculate_text_embeddings(df, status_callback=None):
     if status_callback:
         status_callback("Calculating word embeddings...")
     
+    texts = df['processed_text'].astype(str).tolist()
     embeddings = []
     
-    for text in df['processed_text']:
-        try:
-            # Ensure text is not None and has content
-            if text and len(str(text).strip()) > 0:
-                doc = nlp(str(text))
-                embeddings.append(doc.vector)
-            else:
-                # If text is empty, append a zero vector
-                embeddings.append(np.zeros(nlp.vocab.vectors.shape[1]))
-        except Exception:
-            # Append a zero vector as fallback
-            embeddings.append(np.zeros(nlp.vocab.vectors.shape[1]))
+    # Process texts in batches and disable unnecessary spaCy components for speed
+    for doc in nlp.pipe(texts, batch_size=512, disable=["tagger", "parser", "ner", "lemmatizer", "textcat"]):
+        embeddings.append(doc.vector)
     
     return np.array(embeddings)
 
