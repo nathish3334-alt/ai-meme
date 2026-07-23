@@ -5,16 +5,20 @@ from sklearn.decomposition import LatentDirichletAllocation
 from textblob import TextBlob
 from core.preprocessor import enhanced_preprocess_text
 
-try:
-    nlp = spacy.load('en_core_web_md')
-except Exception as e:
-    print(f"Install spacy: python -m spacy download en_core_web_md")
-    sys.exit(1)
+import os
+nlp = None
+if not os.environ.get('VERCEL'):
+    try:
+        nlp = spacy.load('en_core_web_md')
+    except Exception as e:
+        print(f"Install spacy: python -m spacy download en_core_web_md")
 
 def load_dataset(csv_path):
     return pd.read_csv(csv_path)
 
 def calculate_text_embeddings(df, status_callback=None):
+    if nlp is None:
+        return np.array([np.zeros(300) for _ in range(len(df))])
     if status_callback:
         status_callback("Calculating embeddings...")
     

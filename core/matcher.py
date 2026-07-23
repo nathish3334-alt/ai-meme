@@ -4,16 +4,32 @@ from textblob import TextBlob
 from sklearn.metrics.pairwise import cosine_similarity
 from core.preprocessor import enhanced_preprocess_text
 
-try:
-    nlp = spacy.load('en_core_web_md')
-except:
-    import sys
-    print("Error: Install spacy model: python -m spacy download en_core_web_md")
-    sys.exit(1)
+nlp = None
+if not os.environ.get('VERCEL'):
+    try:
+        nlp = spacy.load('en_core_web_md')
+    except:
+        print("Warning: spaCy model not loaded. Skipping semantic matching.")
 
 MODELS_PATH = os.path.join('models', 'similarity_models.pkl')
 
 def analyze_input(user_input):
+    if nlp is None:
+        blob = TextBlob(user_input)
+        sentiment_score = blob.sentiment.polarity
+        subjectivity = blob.sentiment.subjectivity
+        return {
+            'keywords': user_input.lower(),
+            'entities': [],
+            'important_words': [w for w in user_input.lower().split() if len(w) > 2],
+            'raw_input': user_input,
+            'sentiment': sentiment_score,
+            'subjectivity': subjectivity,
+            'processed_text': enhanced_preprocess_text(user_input),
+            'lemmatized': user_input.lower(),
+            'vector': np.zeros(300)
+        }
+        
     doc = nlp(user_input)
     
     keywords = []
